@@ -17,12 +17,18 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     line-height:1.6;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 64px}
-  header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;
+  header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
     border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:10px}
   header.top h1{font-size:26px;margin:0;font-weight:650;letter-spacing:-0.01em}
   header.top .sub{color:var(--muted);font-size:14px}
-  .period{background:var(--accent-soft);color:#7a5618;border-radius:999px;
-    padding:6px 14px;font-size:13px;font-weight:600}
+  .picker{display:flex;align-items:center;gap:8px}
+  .picker label{font-size:13px;color:var(--muted);font-weight:600}
+  #periodSelect{appearance:none;background:var(--surface);color:var(--ink);
+    border:1px solid var(--accent);border-radius:999px;padding:8px 38px 8px 16px;
+    font-size:14px;font-weight:600;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23b8893b' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 14px center}
+  #periodSelect:focus{outline:2px solid var(--accent-soft)}
   .intro{font-size:15.5px;color:var(--muted);margin:14px 0 8px;max-width:780px}
   section{margin:32px 0}
   h2{font-size:18px;font-weight:650;margin:0 0 4px;letter-spacing:-0.01em}
@@ -35,6 +41,7 @@
   .kpi .delta{font-size:12px;margin-top:6px;font-weight:600}
   .delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.flat{color:var(--muted)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid2.single{grid-template-columns:1fr}
   @media(max-width:780px){.grid2{grid-template-columns:1fr}}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
   .card h3{margin:0 0 2px;font-size:15px;font-weight:600}
@@ -70,6 +77,7 @@
     text-transform:uppercase;letter-spacing:0.03em}
   table.ep tr:last-child td{border-bottom:none}
   .pill{font-size:11px;padding:1px 7px;border-radius:6px;background:var(--accent-soft);color:#7a5618}
+  .hidden{display:none !important}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);
     color:var(--muted);font-size:12.5px;text-align:center}
 </style>
@@ -82,13 +90,16 @@
       <h1 id="ch-name">The Bhagavata Podcast</h1>
       <div class="sub">How the show is doing on YouTube and as a podcast · <span id="updated"></span></div>
     </div>
-    <div class="period" id="period"></div>
+    <div class="picker">
+      <label for="periodSelect">Showing</label>
+      <select id="periodSelect" aria-label="Choose time period"></select>
+    </div>
   </header>
   <p class="intro" id="intro"></p>
 
   <section>
-    <h2>The headline numbers</h2>
-    <p class="sec-sub">Everything below is for last month. Each number has a plain-English note.</p>
+    <h2 id="kpiHead">The headline numbers</h2>
+    <p class="sec-sub" id="kpiSub"></p>
     <div class="kpis" id="kpis"></div>
   </section>
 
@@ -101,45 +112,45 @@
     </div>
   </section>
 
-  <section>
-    <div class="grid2">
-      <div class="card">
+  <section id="secMix">
+    <div class="grid2" id="mixGrid">
+      <div class="card" id="cardAudience">
         <h3>Where the audience is</h3>
-        <p class="cap">Out of everyone who watched or listened last month, where they did it. YouTube = video; the rest are podcast apps.</p>
+        <p class="cap" id="audCap"></p>
         <div class="chart-box tall"><canvas id="chAudience"></canvas></div>
         <div class="takeaway" id="audTake"></div>
       </div>
-      <div class="card">
+      <div class="card" id="cardFormat">
         <h3>Short clips vs full episodes</h3>
-        <p class="cap">How last month's YouTube views split between short clips and full-length episodes.</p>
+        <p class="cap" id="fmtCap"></p>
         <div class="chart-box tall"><canvas id="chFormat"></canvas></div>
         <div class="takeaway" id="fmtTake"></div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section id="secTop">
     <div class="card">
-      <h3>Most-watched videos last month</h3>
-      <p class="cap">The videos that got the most views in the month (a mix of short clips and full episodes).</p>
+      <h3 id="topHead">Most-watched videos</h3>
+      <p class="cap" id="topCap"></p>
       <div class="chart-box tall"><canvas id="chTop"></canvas></div>
     </div>
   </section>
 
-  <section>
+  <section id="secActions">
     <h2>What to do next</h2>
     <p class="sec-sub">A short, prioritised to-do list based on the numbers above. Red = do first.</p>
     <div class="actions" id="actions"></div>
   </section>
 
-  <section>
+  <section id="secComments">
     <h2>What viewers are saying</h2>
-    <p class="sec-sub">A few real comments from last month. The flagged one is worth a reply.</p>
+    <p class="sec-sub">A few real comments from this period. The flagged one is worth a reply.</p>
     <div class="comments" id="comments"></div>
   </section>
 
-  <section>
-    <h2>Everything published last month</h2>
+  <section id="secEpisodes">
+    <h2>Everything published</h2>
     <p class="sec-sub">The full list, with how each one did.</p>
     <div style="overflow-x:auto"><table class="ep" id="eptable"></table></div>
   </section>
@@ -154,7 +165,6 @@
 {
   "channel": "The Bhagavata Podcast",
   "lastUpdated": "2026-06-27",
-  "currentMonthLabel": "May 2026",
   "current": { "subscribers": 549 },
   "trend": [
     { "label": "Jul 2025", "views": 10292, "downloads": 234 },
@@ -170,90 +180,111 @@
     { "label": "May 2026", "views": 3738, "downloads": 526 },
     { "label": "Jun 2026*", "views": 2647, "downloads": 441 }
   ],
-  "month": {
-    "label": "May 2026",
-    "youtube": { "views": 3738, "impressions": 17665, "ctr": 4.5, "watchHours": 331.4, "subsNet": 37 },
-    "buzzsprout": { "downloads": 526 },
-    "audience": [
-      { "name": "YouTube (video)", "value": 3738 },
-      { "name": "Apple Podcasts", "value": 395 },
-      { "name": "Other podcast apps", "value": 99 },
-      { "name": "Spotify", "value": 32 }
-    ],
-    "format": [
-      { "name": "Short clips", "value": 2072 },
-      { "name": "Full episodes", "value": 1666 }
-    ],
-    "topVideos": [
-      { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "views": 617 },
-      { "title": "2.3 Chanting Every Day and Still Feeling Nothing", "type": "Episode", "views": 582 },
-      { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "views": 358 },
-      { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "views": 315 },
-      { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "views": 263 },
-      { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "views": 203 },
-      { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "views": 182 },
-      { "title": "A Teenager Called His Dad a Loser", "type": "Short", "views": 134 }
-    ],
-    "episodes": [
-      { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "published": "May 15", "views": 617, "avgView": 46.1 },
-      { "title": "2.3 Chanting Every Day and Still Feeling Nothing (Manjari Devi Dasi)", "type": "Episode", "published": "May 12", "views": 582, "avgView": 20.1 },
-      { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "published": "May 12", "views": 358, "avgView": 48.8 },
-      { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "published": "May 13", "views": 315, "avgView": 44.5 },
-      { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "published": "May 18", "views": 263, "avgView": 75.4 },
-      { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "published": "May 11", "views": 203, "avgView": 56.6 },
-      { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "published": "May 7", "views": 182, "avgView": 71.9 },
-      { "title": "A Teenager Called His Dad a Loser", "type": "Short", "published": "May 5", "views": 134, "avgView": 61.0 }
-    ],
-    "comments": [
-      { "handle": "@anandadasi", "age": "7 days", "episode": "2.4", "text": "Jai! Mind-blowing episode. Very grateful for this and for seeing and hearing Anuradha.", "flag": false },
-      { "handle": "@mirellageorgieva3383", "age": "2 wks", "episode": "2.4", "text": "I would request another episode with this wonderful lady. Haribol! Great episode.", "flag": false },
-      { "handle": "@OpenRecords", "age": "2 wks", "episode": "2.4", "text": "Another wonderful episode! Loved the humanness you inject into what can be dense subject matter.", "flag": false },
-      { "handle": "@eponymoususer8923", "age": "3 wks", "episode": "\"I've Never Been Completely Satisfied\"", "text": "How are we supposed to understand what you're talking about? Are you elitist, disconnected from the common experience?", "flag": true, "flagnote": "Worth a kind reply" }
-    ],
-    "actions": [
-      { "priority": "high", "title": "Put out more full episodes", "detail": "Only one full episode went out last month, but it gave you almost all of your watch time. Short clips bring lots of quick views but people don't stay long. Aim for two full episodes a month." },
-      { "priority": "high", "title": "Reply warmly to the 'too hard to understand' comment", "detail": "One viewer felt the show was over their head. A friendly reply — plus a simple 'start here' video explaining what the Bhagavatam is — would welcome newcomers in." },
-      { "priority": "med", "title": "Nudge people towards Spotify", "detail": "Nearly all podcast listeners use Apple Podcasts; hardly any use Spotify. Adding a 'listen on Spotify' link and a quick mention could open up a whole new group of listeners." },
-      { "priority": "med", "title": "Invite Anuradha Devi Dasi back", "detail": "Her episode got the warmest comments, and more than one person asked for her to return. An easy win for happy viewers." },
-      { "priority": "med", "title": "Improve the weakest clip covers", "detail": "A couple of short clips were shown to lots of people but few clicked. A clearer opening image and a stronger first line would help them get watched." },
-      { "priority": "low", "title": "Ask viewers to subscribe", "detail": "Lots of people watched but only a few subscribed. A simple 'subscribe to follow along' at the end of full episodes should lift that gently." }
-    ]
-  }
+  "periods": [
+    {
+      "id": "year",
+      "label": "Full year (Jul 2025 – Jun 2026)",
+      "blurb": "A plain-English snapshot of how the show has done over the past 12 months — the big picture, not just last month.",
+      "kpis": {
+        "subscribers": 549, "subsNet": 292, "views": 32205, "watchHours": 1809, "downloads": 4727, "ctr": 3.4
+      },
+      "audience": [
+        { "name": "YouTube (video)", "value": 32205 },
+        { "name": "Apple Podcasts", "value": 3545 },
+        { "name": "Other podcast apps", "value": 898 },
+        { "name": "Spotify", "value": 284 }
+      ],
+      "topVideos": [
+        { "title": "What Real Leadership Actually Means", "type": "Short", "views": 1807 },
+        { "title": "What Do You Need to Know Before You Die?", "type": "Short", "views": 1471 },
+        { "title": "What Would You Do If You Had 7 Days to Live?", "type": "Short", "views": 1396 },
+        { "title": "The King Who Cared Too Much?", "type": "Short", "views": 1359 }
+      ],
+      "actions": [
+        { "priority": "high", "title": "Keep the comeback going", "detail": "After a quiet autumn and winter, the show came roaring back from February. The biggest risk is going quiet again — keep publishing steadily so the momentum holds." },
+        { "priority": "high", "title": "Turn clip-watchers into subscribers", "detail": "Short clips are doing nearly all the discovery work. Point people from clips to full episodes and ask them to subscribe, so casual viewers become regulars." },
+        { "priority": "med", "title": "Grow the audio side", "detail": "Podcast downloads grow steadily but are tiny next to YouTube, and almost all are on Apple. Promoting Spotify and other apps could open new audiences." },
+        { "priority": "med", "title": "Lean into guest conversations", "detail": "The warmest response all year came from guest episodes. Booking more is a reliable way to grow a loyal audience." },
+        { "priority": "low", "title": "Settle into a steady rhythm", "detail": "The year swung between big spikes and long quiet spells. A predictable publishing schedule smooths that out and keeps viewers coming back." }
+      ]
+    },
+    {
+      "id": "2026-05",
+      "label": "May 2026",
+      "blurb": "A plain-English snapshot of how the show did in May — what happened, and what to do next.",
+      "kpis": {
+        "subscribers": 549, "subsNet": 37, "views": 3738, "watchHours": 331, "downloads": 526, "ctr": 4.5
+      },
+      "audience": [
+        { "name": "YouTube (video)", "value": 3738 },
+        { "name": "Apple Podcasts", "value": 395 },
+        { "name": "Other podcast apps", "value": 99 },
+        { "name": "Spotify", "value": 32 }
+      ],
+      "format": [
+        { "name": "Short clips", "value": 2072 },
+        { "name": "Full episodes", "value": 1666 }
+      ],
+      "topVideos": [
+        { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "views": 617 },
+        { "title": "2.3 Chanting Every Day and Still Feeling Nothing", "type": "Episode", "views": 582 },
+        { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "views": 358 },
+        { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "views": 315 },
+        { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "views": 263 },
+        { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "views": 203 },
+        { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "views": 182 },
+        { "title": "A Teenager Called His Dad a Loser", "type": "Short", "views": 134 }
+      ],
+      "episodes": [
+        { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "published": "May 15", "views": 617, "avgView": 46.1 },
+        { "title": "2.3 Chanting Every Day and Still Feeling Nothing (Manjari Devi Dasi)", "type": "Episode", "published": "May 12", "views": 582, "avgView": 20.1 },
+        { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "published": "May 12", "views": 358, "avgView": 48.8 },
+        { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "published": "May 13", "views": 315, "avgView": 44.5 },
+        { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "published": "May 18", "views": 263, "avgView": 75.4 },
+        { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "published": "May 11", "views": 203, "avgView": 56.6 },
+        { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "published": "May 7", "views": 182, "avgView": 71.9 },
+        { "title": "A Teenager Called His Dad a Loser", "type": "Short", "published": "May 5", "views": 134, "avgView": 61.0 }
+      ],
+      "comments": [
+        { "handle": "@anandadasi", "age": "7 days", "episode": "2.4", "text": "Jai! Mind-blowing episode. Very grateful for this and for seeing and hearing Anuradha.", "flag": false },
+        { "handle": "@mirellageorgieva3383", "age": "2 wks", "episode": "2.4", "text": "I would request another episode with this wonderful lady. Haribol! Great episode.", "flag": false },
+        { "handle": "@OpenRecords", "age": "2 wks", "episode": "2.4", "text": "Another wonderful episode! Loved the humanness you inject into what can be dense subject matter.", "flag": false },
+        { "handle": "@eponymoususer8923", "age": "3 wks", "episode": "\"I've Never Been Completely Satisfied\"", "text": "How are we supposed to understand what you're talking about? Are you elitist, disconnected from the common experience?", "flag": true, "flagnote": "Worth a kind reply" }
+      ],
+      "actions": [
+        { "priority": "high", "title": "Put out more full episodes", "detail": "Only one full episode went out last month, but it gave you almost all of your watch time. Short clips bring lots of quick views but people don't stay long. Aim for two full episodes a month." },
+        { "priority": "high", "title": "Reply warmly to the 'too hard to understand' comment", "detail": "One viewer felt the show was over their head. A friendly reply — plus a simple 'start here' video explaining what the Bhagavatam is — would welcome newcomers in." },
+        { "priority": "med", "title": "Nudge people towards Spotify", "detail": "Nearly all podcast listeners use Apple Podcasts; hardly any use Spotify. Adding a 'listen on Spotify' link and a quick mention could open up a whole new group of listeners." },
+        { "priority": "med", "title": "Invite Anuradha Devi Dasi back", "detail": "Her episode got the warmest comments, and more than one person asked for her to return. An easy win for happy viewers." },
+        { "priority": "med", "title": "Improve the weakest clip covers", "detail": "A couple of short clips were shown to lots of people but few clicked. A clearer opening image and a stronger first line would help them get watched." },
+        { "priority": "low", "title": "Ask viewers to subscribe", "detail": "Lots of people watched but only a few subscribed. A simple 'subscribe to follow along' at the end of full episodes should lift that gently." }
+      ]
+    }
+  ]
 }
 </script>
 
 <script>
 (function(){
   const D = JSON.parse(document.getElementById('dashboard-data').textContent);
-  const m = D.month;
   const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
   const fmt = n => n>=1000 ? (n/1000).toFixed(n>=10000?0:1)+'K' : (''+n);
+  const ACC=css('--accent'), YT=css('--yt'), POD=css('--pod');
+  let charts = {};
 
   document.getElementById('ch-name').textContent = D.channel;
-  document.getElementById('period').textContent = m.label;
   document.getElementById('updated').textContent = 'updated '+D.lastUpdated;
   document.getElementById('foot-updated').textContent = 'last updated '+D.lastUpdated;
-  document.getElementById('intro').textContent =
-    'A plain-English snapshot of how '+D.channel+' is doing. No jargon — just what happened last month, what the year looks like, and what to do next.';
-
-  const kpis = [
-    {val:D.current.subscribers.toLocaleString(), label:'Followers', plain:'People subscribed to the YouTube channel', delta:'<div class="delta up">+'+m.youtube.subsNet+' last month</div>'},
-    {val:fmt(m.youtube.views), label:'Video views', plain:'Times a video was watched on YouTube last month'},
-    {val:Math.round(m.youtube.watchHours).toLocaleString(), label:'Hours watched', plain:'Total hours people spent watching last month'},
-    {val:m.buzzsprout.downloads.toLocaleString(), label:'Podcast downloads', plain:'Times an episode was downloaded as audio'},
-    {val:m.youtube.ctr+'%', label:'Click rate', plain:'Of people shown a video, how many clicked to watch'}
-  ];
-  document.getElementById('kpis').innerHTML = kpis.map(k=>
-    '<div class="kpi"><div class="val">'+k.val+'</div><div class="label">'+k.label+'</div>'+
-    '<div class="plain">'+k.plain+'</div>'+(k.delta||'')+'</div>'
-  ).join('');
 
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
   Chart.defaults.color = css('--muted');
-  const ACC=css('--accent'), YT=css('--yt'), POD=css('--pod');
 
-  // Year trend
-  new Chart(document.getElementById('chTrend'),{
+  // Period dropdown
+  const sel = document.getElementById('periodSelect');
+  sel.innerHTML = D.periods.map(p=>'<option value="'+p.id+'">'+p.label+'</option>').join('');
+
+  // Trend chart (constant — always the full year)
+  charts.trend = new Chart(document.getElementById('chTrend'),{
     type:'line',
     data:{ labels:D.trend.map(x=>x.label),
       datasets:[
@@ -270,67 +301,116 @@
   document.getElementById('trendTake').innerHTML =
     '<b>The story:</b> a big launch spike last July, a quiet autumn and winter, then a strong comeback from February onward. YouTube views swing a lot; podcast downloads grow more steadily. (Jun 2026 is still a part-month.)';
 
-  // Audience combined
-  const apal=[YT,'#7b8aa0','#cfc6b5',POD];
-  const audTotal=m.audience.reduce((a,x)=>a+x.value,0);
-  new Chart(document.getElementById('chAudience'),{
-    type:'doughnut',
-    data:{ labels:m.audience.map(x=>x.name),
-      datasets:[{ data:m.audience.map(x=>x.value), backgroundColor:apal, borderWidth:2, borderColor:css('--surface') }] },
-    options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
-      tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toLocaleString()+' ('+Math.round(c.raw/audTotal*100)+'%)'}}},
-      maintainAspectRatio:false }
-  });
-  const ytPct=Math.round(m.audience[0].value/audTotal*100);
-  document.getElementById('audTake').innerHTML =
-    '<b>The story:</b> about '+ytPct+'% of your audience is on YouTube. The podcast-app listeners are almost all on Apple Podcasts — Spotify is barely used yet.';
+  function show(id, on){ document.getElementById(id).classList.toggle('hidden', !on); }
+  function destroy(name){ if(charts[name]){ charts[name].destroy(); delete charts[name]; } }
 
-  // Format split
-  new Chart(document.getElementById('chFormat'),{
-    type:'doughnut',
-    data:{ labels:m.format.map(x=>x.name),
-      datasets:[{ data:m.format.map(x=>x.value), backgroundColor:[ACC,POD], borderWidth:2, borderColor:css('--surface') }] },
-    options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
-      tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toLocaleString()+' views'}}},
-      maintainAspectRatio:false }
-  });
-  document.getElementById('fmtTake').innerHTML =
-    '<b>The story:</b> short clips pull in slightly more views — but the single full episode is where people actually spent their time (most of the month\'s watch hours). Clips attract; episodes hold.';
+  function render(period){
+    const isYear = period.id==='year';
+    const noun = isYear ? 'this year' : 'last month';
+    document.getElementById('intro').textContent = period.blurb;
 
-  // Top videos
-  const eps=m.topVideos.slice().sort((a,b)=>b.views-a.views);
-  new Chart(document.getElementById('chTop'),{
-    type:'bar',
-    data:{ labels:eps.map(e=>e.title.length>40?e.title.slice(0,39)+'…':e.title),
-      datasets:[{ data:eps.map(e=>e.views),
-        backgroundColor:eps.map(e=>e.type==='Episode'?POD:ACC), borderRadius:5 }] },
-    options:{ indexAxis:'y', plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:c=>c.raw+' views',afterLabel:c=>eps[c.dataIndex].type}}},
-      scales:{x:{grid:{color:css('--line')},title:{display:true,text:'views',font:{size:11}}},
-        y:{grid:{display:false},ticks:{font:{size:11}}}},
-      maintainAspectRatio:false }
-  });
+    // KPIs
+    const k = period.kpis;
+    document.getElementById('kpiHead').textContent = isYear ? 'The headline numbers — past 12 months' : 'The headline numbers';
+    document.getElementById('kpiSub').textContent = isYear
+      ? 'Totals across the last 12 months. Each number has a plain-English note.'
+      : 'Everything below is for the selected month. Each number has a plain-English note.';
+    const cards = [
+      {val:k.subscribers.toLocaleString(), label:'Followers', plain:'People subscribed to the YouTube channel', delta:'<div class="delta up">+'+k.subsNet+' '+noun+'</div>'},
+      {val:fmt(k.views), label:'Video views', plain:'Times a video was watched on YouTube '+noun},
+      {val:k.watchHours.toLocaleString(), label:'Hours watched', plain:'Total hours people spent watching '+noun},
+      {val:k.downloads.toLocaleString(), label:'Podcast downloads', plain:'Times an episode was downloaded as audio '+noun},
+      {val:k.ctr+'%', label:'Click rate', plain:'Of people shown a video, how many clicked to watch'}
+    ];
+    document.getElementById('kpis').innerHTML = cards.map(c=>
+      '<div class="kpi"><div class="val">'+c.val+'</div><div class="label">'+c.label+'</div>'+
+      '<div class="plain">'+c.plain+'</div>'+(c.delta||'')+'</div>').join('');
 
-  // Actions
-  document.getElementById('actions').innerHTML = m.actions.map(a=>{
-    const cls=a.priority==='high'?'high':(a.priority==='med'?'med':'low');
-    const tag=a.priority==='high'?'Do first':(a.priority==='med'?'Soon':'When you can');
-    return '<div class="action '+cls+'"><span class="tag">'+tag+'</span>'+
-      '<div class="body"><strong>'+a.title+'</strong><span>'+a.detail+'</span></div></div>';
-  }).join('');
+    // Audience
+    destroy('aud');
+    const aud = period.audience, audTotal = aud.reduce((a,x)=>a+x.value,0);
+    document.getElementById('audCap').textContent =
+      'Out of everyone who watched or listened '+noun+', where they did it. YouTube = video; the rest are podcast apps.';
+    charts.aud = new Chart(document.getElementById('chAudience'),{
+      type:'doughnut',
+      data:{ labels:aud.map(x=>x.name),
+        datasets:[{ data:aud.map(x=>x.value), backgroundColor:[YT,'#7b8aa0','#cfc6b5',POD], borderWidth:2, borderColor:css('--surface') }] },
+      options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
+        tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toLocaleString()+' ('+Math.round(c.raw/audTotal*100)+'%)'}}},
+        maintainAspectRatio:false }
+    });
+    const ytPct=Math.round(aud[0].value/audTotal*100);
+    document.getElementById('audTake').innerHTML =
+      '<b>The story:</b> about '+ytPct+'% of your audience is on YouTube. The podcast-app listeners are almost all on Apple Podcasts — Spotify is barely used yet.';
 
-  // Comments
-  document.getElementById('comments').innerHTML = m.comments.map(c=>
-    '<div class="cmt'+(c.flag?' flag':'')+'"><div class="meta">'+c.handle+' · '+c.age+' · on '+c.episode+
-    (c.flag?'<span class="flagnote">⚑ '+(c.flagnote||'Flagged')+'</span>':'')+'</div>'+c.text+'</div>'
-  ).join('');
+    // Format (month only)
+    destroy('fmt');
+    if(period.format){
+      show('cardFormat', true);
+      document.getElementById('mixGrid').classList.remove('single');
+      document.getElementById('fmtCap').textContent = 'How '+noun+"'s YouTube views split between short clips and full-length episodes.";
+      charts.fmt = new Chart(document.getElementById('chFormat'),{
+        type:'doughnut',
+        data:{ labels:period.format.map(x=>x.name),
+          datasets:[{ data:period.format.map(x=>x.value), backgroundColor:[ACC,POD], borderWidth:2, borderColor:css('--surface') }] },
+        options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
+          tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toLocaleString()+' views'}}}, maintainAspectRatio:false }
+      });
+      document.getElementById('fmtTake').innerHTML =
+        '<b>The story:</b> short clips pull in slightly more views — but the single full episode is where people actually spent their time. Clips attract; episodes hold.';
+    } else {
+      show('cardFormat', false);
+      document.getElementById('mixGrid').classList.add('single');
+    }
 
-  // Episode table
-  const rows=m.episodes.map(e=>
-    '<tr><td>'+e.title+' <span class="pill">'+e.type+'</span></td><td>'+e.published+'</td><td>'+
-    e.views.toLocaleString()+'</td><td>'+e.avgView+'%</td></tr>').join('');
-  document.getElementById('eptable').innerHTML =
-    '<thead><tr><th>Title</th><th>Published</th><th>Views</th><th>How much watched</th></tr></thead><tbody>'+rows+'</tbody>';
+    // Top videos
+    destroy('top');
+    const eps = period.topVideos.slice().sort((a,b)=>b.views-a.views);
+    document.getElementById('topHead').textContent = isYear ? "The year's most-watched videos" : 'Most-watched videos last month';
+    document.getElementById('topCap').textContent = isYear
+      ? "The videos with the most views across the year (all short clips so far)."
+      : 'The videos that got the most views in the month (a mix of short clips and full episodes).';
+    charts.top = new Chart(document.getElementById('chTop'),{
+      type:'bar',
+      data:{ labels:eps.map(e=>e.title.length>40?e.title.slice(0,39)+'…':e.title),
+        datasets:[{ data:eps.map(e=>e.views), backgroundColor:eps.map(e=>e.type==='Episode'?POD:ACC), borderRadius:5 }] },
+      options:{ indexAxis:'y', plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.raw.toLocaleString()+' views',afterLabel:c=>eps[c.dataIndex].type}}},
+        scales:{x:{grid:{color:css('--line')},title:{display:true,text:'views',font:{size:11}}},
+          y:{grid:{display:false},ticks:{font:{size:11}}}}, maintainAspectRatio:false }
+    });
+
+    // Actions
+    document.getElementById('actions').innerHTML = period.actions.map(a=>{
+      const cls=a.priority==='high'?'high':(a.priority==='med'?'med':'low');
+      const tag=a.priority==='high'?'Do first':(a.priority==='med'?'Soon':'When you can');
+      return '<div class="action '+cls+'"><span class="tag">'+tag+'</span>'+
+        '<div class="body"><strong>'+a.title+'</strong><span>'+a.detail+'</span></div></div>';
+    }).join('');
+
+    // Comments (month only)
+    if(period.comments){
+      show('secComments', true);
+      document.getElementById('comments').innerHTML = period.comments.map(c=>
+        '<div class="cmt'+(c.flag?' flag':'')+'"><div class="meta">'+c.handle+' · '+c.age+' · on '+c.episode+
+        (c.flag?'<span class="flagnote">⚑ '+(c.flagnote||'Flagged')+'</span>':'')+'</div>'+c.text+'</div>').join('');
+    } else { show('secComments', false); }
+
+    // Episode table (month only)
+    if(period.episodes){
+      show('secEpisodes', true);
+      const rows=period.episodes.map(e=>
+        '<tr><td>'+e.title+' <span class="pill">'+e.type+'</span></td><td>'+e.published+'</td><td>'+
+        e.views.toLocaleString()+'</td><td>'+e.avgView+'%</td></tr>').join('');
+      document.getElementById('eptable').innerHTML =
+        '<thead><tr><th>Title</th><th>Published</th><th>Views</th><th>How much watched</th></tr></thead><tbody>'+rows+'</tbody>';
+    } else { show('secEpisodes', false); }
+  }
+
+  sel.addEventListener('change', ()=> render(D.periods.find(p=>p.id===sel.value)));
+  // Default to the most recent month (last in list)
+  sel.value = D.periods[D.periods.length-1].id;
+  render(D.periods.find(p=>p.id===sel.value));
 })();
 </script>
 </body>
