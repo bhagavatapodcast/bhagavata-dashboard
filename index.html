@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Bhagavata Podcast — Analytics Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f6f4ef; --surface:#ffffff; --ink:#23201a; --muted:#6f685c;
+    --line:#e7e2d8; --accent:#b8893b; --accent-soft:#f0e4ce;
+    --good:#3f7d54; --warn:#c9852a; --bad:#bb4b3c;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 64px}
+  header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;
+    border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  header.top h1{font-size:26px;margin:0;font-weight:650;letter-spacing:-0.01em}
+  header.top .sub{color:var(--muted);font-size:14px}
+  .period{background:var(--accent-soft);color:#7a5618;border-radius:999px;
+    padding:6px 14px;font-size:13px;font-weight:600}
+  section{margin:34px 0}
+  h2{font-size:17px;font-weight:650;margin:0 0 14px;letter-spacing:-0.01em}
+  h2 .hint{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em}
+  .kpi .val{font-size:28px;font-weight:700;margin-top:4px;letter-spacing:-0.02em}
+  .kpi .delta{font-size:12px;margin-top:2px;font-weight:600}
+  .delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.flat{color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:780px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+  .card h3{margin:0 0 14px;font-size:14px;font-weight:600;color:var(--ink)}
+  .chart-box{position:relative;height:280px}
+  .chart-box.tall{height:320px}
+  .actions{display:grid;gap:12px}
+  .action{background:var(--surface);border:1px solid var(--line);border-left-width:4px;
+    border-radius:10px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start}
+  .action.high{border-left-color:var(--bad)}
+  .action.med{border-left-color:var(--warn)}
+  .action.low{border-left-color:var(--good)}
+  .action .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;
+    padding:3px 9px;border-radius:999px;white-space:nowrap;margin-top:2px}
+  .high .tag{background:#f7e2de;color:var(--bad)}
+  .med .tag{background:#f7ead2;color:#946018}
+  .low .tag{background:#def0e3;color:var(--good)}
+  .action .body strong{display:block;font-size:14.5px;margin-bottom:2px}
+  .action .body span{font-size:13.5px;color:var(--muted)}
+  .comments{display:grid;gap:10px}
+  .cmt{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 15px;font-size:14px}
+  .cmt .meta{font-size:12px;color:var(--muted);margin-bottom:3px}
+  .cmt.flag{border-color:#e7c3bc;background:#fdf6f4}
+  .cmt .flagnote{display:inline-block;font-size:11px;font-weight:700;color:var(--bad);margin-left:6px}
+  table.ep{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--surface);
+    border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  table.ep th,table.ep td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line)}
+  table.ep th:first-child,table.ep td:first-child{text-align:left}
+  table.ep th{background:#faf8f3;font-weight:600;color:var(--muted);font-size:12px;
+    text-transform:uppercase;letter-spacing:0.03em}
+  table.ep tr:last-child td{border-bottom:none}
+  .pill{font-size:11px;padding:1px 7px;border-radius:6px;background:var(--accent-soft);color:#7a5618}
+  footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:12.5px;text-align:center}
+  .note{font-size:12.5px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1 id="ch-name">The Bhagavata Podcast</h1>
+      <div class="sub">YouTube + Buzzsprout analytics · <span id="updated"></span></div>
+    </div>
+    <div class="period" id="period"></div>
+  </header>
+
+  <section>
+    <h2>This month at a glance</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="note" id="annual-note"></div>
+  </section>
+
+  <section>
+    <div class="grid2">
+      <div class="card">
+        <h3>Top content by views <span style="font-weight:400;color:var(--muted)">— this month</span></h3>
+        <div class="chart-box tall"><canvas id="chTop"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Where people listen <span style="font-weight:400;color:var(--muted)">— Buzzsprout apps</span></h3>
+        <div class="chart-box tall"><canvas id="chPlat"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid2">
+      <div class="card">
+        <h3>Reach trend <span style="font-weight:400;color:var(--muted)">— builds each month</span></h3>
+        <div class="chart-box"><canvas id="chTrend"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Engagement <span style="font-weight:400;color:var(--muted)">— avg % viewed, top items</span></h3>
+        <div class="chart-box"><canvas id="chEng"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Actions to improve <span class="hint">prioritised from this month's data</span></h2>
+    <div class="actions" id="actions"></div>
+  </section>
+
+  <section>
+    <h2>What viewers are saying <span class="hint">selected comments</span></h2>
+    <div class="comments" id="comments"></div>
+  </section>
+
+  <section>
+    <h2>Episodes &amp; content published <span class="hint">this month</span></h2>
+    <div style="overflow-x:auto"><table class="ep" id="eptable"></table></div>
+  </section>
+
+  <footer>
+    Generated by the Bhagavata Podcast analytics workflow · data read directly from YouTube Studio and Buzzsprout ·
+    <span id="foot-updated"></span>
+  </footer>
+</div>
+
+<script id="dashboard-data" type="application/json">
+{
+  "channel": "The Bhagavata Podcast",
+  "lastUpdated": "2026-06-27",
+  "current": { "subscribers": 549 },
+  "annual": { "window": "Jun 2025 – Jun 2026", "views": 32205, "watchHours": 1808.7, "subsNet": 292, "impressions": 173499, "ctr": 3.4 },
+  "months": [
+    {
+      "key": "2026-05",
+      "label": "May 2026",
+      "youtube": { "views": 3738, "impressions": 17665, "ctr": 4.5, "watchHours": 331.4, "subsNet": 37 },
+      "buzzsprout": { "downloads": 526, "downloads30d": 475 },
+      "episodes": [
+        { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "published": "May 15", "views": 617, "ctr": 3.1, "avgView": 46.1, "subs": 2 },
+        { "title": "2.3 Chanting Every Day and Still Feeling Nothing (Manjari Devi Dasi)", "type": "Episode", "published": "May 12", "views": 582, "ctr": 6.7, "avgView": 20.1, "subs": 9 },
+        { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "published": "May 12", "views": 358, "ctr": 1.3, "avgView": 48.8, "subs": 0 },
+        { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "published": "May 13", "views": 315, "ctr": 4.2, "avgView": 44.5, "subs": 0 },
+        { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "published": "May 18", "views": 263, "ctr": null, "avgView": 75.4, "subs": null },
+        { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "published": "May 11", "views": 203, "ctr": null, "avgView": 56.6, "subs": null },
+        { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "published": "May 7", "views": 182, "ctr": null, "avgView": 71.9, "subs": null },
+        { "title": "A Teenager Called His Dad a Loser", "type": "Short", "published": "May 5", "views": 134, "ctr": null, "avgView": 61.0, "subs": null }
+      ],
+      "platforms": [
+        { "name": "Apple Podcasts", "pct": 75 },
+        { "name": "Spotify", "pct": 6 },
+        { "name": "Web Browser", "pct": 4 },
+        { "name": "Podbean", "pct": 2 },
+        { "name": "Overcast", "pct": 2 },
+        { "name": "Other", "pct": 11 }
+      ],
+      "comments": [
+        { "handle": "@anandadasi", "age": "7 days", "episode": "2.4", "text": "Jai! Mind-blowing episode. Very grateful for this and for seeing and hearing Anuradha.", "flag": false },
+        { "handle": "@mirellageorgieva3383", "age": "2 wks", "episode": "2.4", "text": "I would request another episode with this wonderful lady. Haribol! Great episode.", "flag": false },
+        { "handle": "@OpenRecords", "age": "2 wks", "episode": "2.4", "text": "Another wonderful episode! Loved the humanness you inject into what can be dense subject matter.", "flag": false },
+        { "handle": "@eponymoususer8923", "age": "3 wks", "episode": "I've Never Been Completely Satisfied", "text": "How are we supposed to understand what you're talking about? Are you elitist, disconnected from the common experience?", "flag": true, "flagnote": "Needs a measured reply" }
+      ],
+      "actions": [
+        { "priority": "high", "title": "Lift long-form output", "detail": "Only one full episode (2.3) published in May, yet it produced 111 of the month's 331 watch hours. Shorts drive views but little watch time. Aim for 2 long-form episodes/month to protect watch time." },
+        { "priority": "high", "title": "Address the accessibility critique", "detail": "A pointed comment called the content elitist/inaccessible. Consider a short 'start here' explainer on what the Bhagavatam is and why it's experiential — and reply to that comment with warmth." },
+        { "priority": "med", "title": "Grow Spotify share", "detail": "Apple Podcasts is 75% of downloads; Spotify only 6%. Add a Spotify follow link to episode descriptions and a verbal CTA to widen distribution." },
+        { "priority": "med", "title": "Book a follow-up with Anuradha Devi Dasi", "detail": "Multiple viewers asked for more episodes with her. Her episodes (2.4) draw the warmest engagement — schedule a return." },
+        { "priority": "med", "title": "Fix weak Shorts thumbnails/hooks", "detail": "Some Shorts had CTR of 1.3–3.1% despite high impressions. Test stronger opening frames and on-screen hooks on the lowest-CTR Shorts." },
+        { "priority": "low", "title": "Tighten subscribe conversion", "detail": "3,738 views converted ~37 subscribers (~1%). Add a clear subscribe CTA card at the end of long-form episodes." }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  const D = JSON.parse(document.getElementById('dashboard-data').textContent);
+  const m = D.months[D.months.length-1];
+  const prev = D.months.length>1 ? D.months[D.months.length-2] : null;
+  const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  const fmt = n => n>=1000 ? (n/1000).toFixed(n>=10000?0:1)+'K' : (''+n);
+
+  document.getElementById('ch-name').textContent = D.channel;
+  document.getElementById('period').textContent = m.label;
+  document.getElementById('updated').textContent = 'updated '+D.lastUpdated;
+  document.getElementById('foot-updated').textContent = 'last updated '+D.lastUpdated;
+
+  function delta(cur, key){
+    if(!prev) return '';
+    const p = prev.youtube[key]!==undefined?prev.youtube[key]:(prev.buzzsprout[key]);
+    if(p==null) return '';
+    const d = ((cur-p)/p*100);
+    const cls = d>0.5?'up':(d<-0.5?'down':'flat');
+    const arrow = d>0.5?'▲':(d<-0.5?'▼':'▬');
+    return '<div class="delta '+cls+'">'+arrow+' '+Math.abs(d).toFixed(0)+'% vs '+prev.label+'</div>';
+  }
+
+  const kpis = [
+    {label:'Subscribers', val:D.current.subscribers.toLocaleString(), extra:'<div class="delta up">+'+m.youtube.subsNet+' this month</div>'},
+    {label:'YouTube views', val:fmt(m.youtube.views), extra:delta(m.youtube.views,'views')},
+    {label:'Watch hours', val:m.youtube.watchHours.toLocaleString(), extra:delta(m.youtube.watchHours,'watchHours')},
+    {label:'Downloads (Buzzsprout)', val:m.buzzsprout.downloads.toLocaleString(), extra:delta(m.buzzsprout.downloads,'downloads')},
+    {label:'Impressions CTR', val:m.youtube.ctr+'%', extra:''},
+    {label:'Impressions', val:fmt(m.youtube.impressions), extra:''}
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>
+    '<div class="kpi"><div class="label">'+k.label+'</div><div class="val">'+k.val+'</div>'+(k.extra||'')+'</div>'
+  ).join('');
+
+  document.getElementById('annual-note').innerHTML =
+    'Trailing 12 months ('+D.annual.window+'): <strong>'+D.annual.views.toLocaleString()+'</strong> views · <strong>'+
+    D.annual.watchHours.toLocaleString()+'</strong> watch hours · <strong>+'+D.annual.subsNet+'</strong> subscribers · '+
+    D.annual.impressions.toLocaleString()+' impressions at '+D.annual.ctr+'% CTR.';
+
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  Chart.defaults.color = css('--muted');
+  const ACC = css('--accent'), INK = css('--ink');
+
+  // Top content by views (horizontal bar)
+  const eps = m.episodes.slice().sort((a,b)=>b.views-a.views);
+  new Chart(document.getElementById('chTop'),{
+    type:'bar',
+    data:{ labels:eps.map(e=>e.title.length>34?e.title.slice(0,33)+'…':e.title),
+      datasets:[{ data:eps.map(e=>e.views),
+        backgroundColor:eps.map(e=>e.type==='Episode'?ACC:'#d8c9a8'),
+        borderRadius:5 }] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false},
+      tooltip:{callbacks:{afterLabel:c=>'CTR '+(eps[c.dataIndex].ctr??'—')+'% · '+(eps[c.dataIndex].avgView)+'% viewed'}}},
+      scales:{x:{grid:{color:css('--line')}},y:{grid:{display:false},ticks:{font:{size:11}}}},
+      maintainAspectRatio:false }
+  });
+
+  // Platform doughnut
+  const pal = [ACC,'#3f7d54','#7b8aa0','#c9852a','#9c6bb0','#cfc6b5'];
+  new Chart(document.getElementById('chPlat'),{
+    type:'doughnut',
+    data:{ labels:m.platforms.map(p=>p.name),
+      datasets:[{ data:m.platforms.map(p=>p.pct), backgroundColor:pal, borderWidth:2, borderColor:css('--surface') }] },
+    options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
+      tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}, maintainAspectRatio:false }
+  });
+
+  // Reach trend (views + downloads across months)
+  new Chart(document.getElementById('chTrend'),{
+    type:'line',
+    data:{ labels:D.months.map(x=>x.label),
+      datasets:[
+        { label:'YouTube views', data:D.months.map(x=>x.youtube.views), borderColor:ACC, backgroundColor:ACC, tension:0.3, pointRadius:4 },
+        { label:'Downloads', data:D.months.map(x=>x.buzzsprout.downloads), borderColor:'#3f7d54', backgroundColor:'#3f7d54', tension:0.3, pointRadius:4 }
+      ] },
+    options:{ plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:12}}}},
+      scales:{y:{beginAtZero:true,grid:{color:css('--line')}},x:{grid:{display:false}}},
+      maintainAspectRatio:false }
+  });
+
+  // Engagement: avg % viewed for top items
+  new Chart(document.getElementById('chEng'),{
+    type:'bar',
+    data:{ labels:eps.slice(0,6).map(e=>e.title.length>22?e.title.slice(0,21)+'…':e.title),
+      datasets:[{ label:'Avg % viewed', data:eps.slice(0,6).map(e=>e.avgView),
+        backgroundColor:'#7b8aa0', borderRadius:5 }] },
+    options:{ plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,grid:{color:css('--line')},ticks:{callback:v=>v+'%'}},
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40,minRotation:40}}},
+      maintainAspectRatio:false }
+  });
+
+  // Actions
+  document.getElementById('actions').innerHTML = m.actions.map(a=>{
+    const cls = a.priority==='high'?'high':(a.priority==='med'?'med':'low');
+    const tag = a.priority==='high'?'High':(a.priority==='med'?'Medium':'Low');
+    return '<div class="action '+cls+'"><span class="tag">'+tag+'</span>'+
+      '<div class="body"><strong>'+a.title+'</strong><span>'+a.detail+'</span></div></div>';
+  }).join('');
+
+  // Comments
+  document.getElementById('comments').innerHTML = m.comments.map(c=>
+    '<div class="cmt'+(c.flag?' flag':'')+'"><div class="meta">'+c.handle+' · '+c.age+' · on '+c.episode+
+    (c.flag?'<span class="flagnote">⚑ '+(c.flagnote||'Flagged')+'</span>':'')+'</div>'+c.text+'</div>'
+  ).join('');
+
+  // Episode table
+  const rows = m.episodes.map(e=>
+    '<tr><td>'+e.title+' <span class="pill">'+e.type+'</span></td><td>'+e.published+'</td><td>'+
+    e.views.toLocaleString()+'</td><td>'+(e.ctr??'—')+(e.ctr!=null?'%':'')+'</td><td>'+e.avgView+'%</td><td>'+
+    (e.subs??'—')+'</td></tr>').join('');
+  document.getElementById('eptable').innerHTML =
+    '<thead><tr><th>Title</th><th>Published</th><th>Views</th><th>CTR</th><th>Avg viewed</th><th>Subs</th></tr></thead><tbody>'+rows+'</tbody>';
+})();
+</script>
+</body>
+</html>
