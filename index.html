@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Bhagavata Podcast — Analytics Dashboard</title>
+<title>The Bhagavata Podcast — How We're Doing</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#f6f4ef; --surface:#ffffff; --ink:#23201a; --muted:#6f685c;
     --line:#e7e2d8; --accent:#b8893b; --accent-soft:#f0e4ce;
-    --good:#3f7d54; --warn:#c9852a; --bad:#bb4b3c;
+    --good:#3f7d54; --warn:#c9852a; --bad:#bb4b3c; --yt:#c0392b; --pod:#3f7d54;
     --r:14px;
   }
   *{box-sizing:border-box}
@@ -18,26 +18,32 @@
     line-height:1.6;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 64px}
   header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;
-    border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+    border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:10px}
   header.top h1{font-size:26px;margin:0;font-weight:650;letter-spacing:-0.01em}
   header.top .sub{color:var(--muted);font-size:14px}
   .period{background:var(--accent-soft);color:#7a5618;border-radius:999px;
     padding:6px 14px;font-size:13px;font-weight:600}
-  section{margin:34px 0}
-  h2{font-size:17px;font-weight:650;margin:0 0 14px;letter-spacing:-0.01em}
-  h2 .hint{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px}
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .intro{font-size:15.5px;color:var(--muted);margin:14px 0 8px;max-width:780px}
+  section{margin:32px 0}
+  h2{font-size:18px;font-weight:650;margin:0 0 4px;letter-spacing:-0.01em}
+  .sec-sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px}
   .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
-  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em}
-  .kpi .val{font-size:28px;font-weight:700;margin-top:4px;letter-spacing:-0.02em}
-  .kpi .delta{font-size:12px;margin-top:2px;font-weight:600}
+  .kpi .val{font-size:30px;font-weight:700;letter-spacing:-0.02em;line-height:1.1}
+  .kpi .label{font-size:14px;font-weight:600;margin-top:6px}
+  .kpi .plain{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .kpi .delta{font-size:12px;margin-top:6px;font-weight:600}
   .delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.flat{color:var(--muted)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   @media(max-width:780px){.grid2{grid-template-columns:1fr}}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
-  .card h3{margin:0 0 14px;font-size:14px;font-weight:600;color:var(--ink)}
-  .chart-box{position:relative;height:280px}
-  .chart-box.tall{height:320px}
+  .card h3{margin:0 0 2px;font-size:15px;font-weight:600}
+  .card .cap{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+  .card .takeaway{font-size:13px;color:var(--ink);background:var(--accent-soft);
+    border-radius:9px;padding:9px 12px;margin-top:14px;line-height:1.5}
+  .card .takeaway b{font-weight:600}
+  .chart-box{position:relative;height:300px}
+  .chart-box.tall{height:330px}
   .actions{display:grid;gap:12px}
   .action{background:var(--surface);border:1px solid var(--line);border-left-width:4px;
     border-radius:10px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start}
@@ -66,7 +72,6 @@
   .pill{font-size:11px;padding:1px 7px;border-radius:6px;background:var(--accent-soft);color:#7a5618}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);
     color:var(--muted);font-size:12.5px;text-align:center}
-  .note{font-size:12.5px;color:var(--muted);margin-top:8px}
 </style>
 </head>
 <body>
@@ -75,60 +80,72 @@
   <header class="top">
     <div>
       <h1 id="ch-name">The Bhagavata Podcast</h1>
-      <div class="sub">YouTube + Buzzsprout analytics · <span id="updated"></span></div>
+      <div class="sub">How the show is doing on YouTube and as a podcast · <span id="updated"></span></div>
     </div>
     <div class="period" id="period"></div>
   </header>
+  <p class="intro" id="intro"></p>
 
   <section>
-    <h2>This month at a glance</h2>
+    <h2>The headline numbers</h2>
+    <p class="sec-sub">Everything below is for last month. Each number has a plain-English note.</p>
     <div class="kpis" id="kpis"></div>
-    <div class="note" id="annual-note"></div>
   </section>
 
   <section>
-    <div class="grid2">
-      <div class="card">
-        <h3>Top content by views <span style="font-weight:400;color:var(--muted)">— this month</span></h3>
-        <div class="chart-box tall"><canvas id="chTop"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Where people listen <span style="font-weight:400;color:var(--muted)">— Buzzsprout apps</span></h3>
-        <div class="chart-box tall"><canvas id="chPlat"></canvas></div>
-      </div>
+    <div class="card">
+      <h3>The story over the past year</h3>
+      <p class="cap">How many times videos were watched on YouTube, and how many times episodes were downloaded as audio, each month.</p>
+      <div class="chart-box tall"><canvas id="chTrend"></canvas></div>
+      <div class="takeaway" id="trendTake"></div>
     </div>
   </section>
 
   <section>
     <div class="grid2">
       <div class="card">
-        <h3>Reach trend <span style="font-weight:400;color:var(--muted)">— builds each month</span></h3>
-        <div class="chart-box"><canvas id="chTrend"></canvas></div>
+        <h3>Where the audience is</h3>
+        <p class="cap">Out of everyone who watched or listened last month, where they did it. YouTube = video; the rest are podcast apps.</p>
+        <div class="chart-box tall"><canvas id="chAudience"></canvas></div>
+        <div class="takeaway" id="audTake"></div>
       </div>
       <div class="card">
-        <h3>Engagement <span style="font-weight:400;color:var(--muted)">— avg % viewed, top items</span></h3>
-        <div class="chart-box"><canvas id="chEng"></canvas></div>
+        <h3>Short clips vs full episodes</h3>
+        <p class="cap">How last month's YouTube views split between short clips and full-length episodes.</p>
+        <div class="chart-box tall"><canvas id="chFormat"></canvas></div>
+        <div class="takeaway" id="fmtTake"></div>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>Actions to improve <span class="hint">prioritised from this month's data</span></h2>
+    <div class="card">
+      <h3>Most-watched videos last month</h3>
+      <p class="cap">The videos that got the most views in the month (a mix of short clips and full episodes).</p>
+      <div class="chart-box tall"><canvas id="chTop"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What to do next</h2>
+    <p class="sec-sub">A short, prioritised to-do list based on the numbers above. Red = do first.</p>
     <div class="actions" id="actions"></div>
   </section>
 
   <section>
-    <h2>What viewers are saying <span class="hint">selected comments</span></h2>
+    <h2>What viewers are saying</h2>
+    <p class="sec-sub">A few real comments from last month. The flagged one is worth a reply.</p>
     <div class="comments" id="comments"></div>
   </section>
 
   <section>
-    <h2>Episodes &amp; content published <span class="hint">this month</span></h2>
+    <h2>Everything published last month</h2>
+    <p class="sec-sub">The full list, with how each one did.</p>
     <div style="overflow-x:auto"><table class="ep" id="eptable"></table></div>
   </section>
 
   <footer>
-    Generated by the Bhagavata Podcast analytics workflow · data read directly from YouTube Studio and Buzzsprout ·
+    Built from numbers read straight off YouTube Studio and Buzzsprout · anything that couldn't be read clearly is left out rather than guessed ·
     <span id="foot-updated"></span>
   </footer>
 </div>
@@ -137,56 +154,78 @@
 {
   "channel": "The Bhagavata Podcast",
   "lastUpdated": "2026-06-27",
+  "currentMonthLabel": "May 2026",
   "current": { "subscribers": 549 },
-  "annual": { "window": "Jun 2025 – Jun 2026", "views": 32205, "watchHours": 1808.7, "subsNet": 292, "impressions": 173499, "ctr": 3.4 },
-  "months": [
-    {
-      "key": "2026-05",
-      "label": "May 2026",
-      "youtube": { "views": 3738, "impressions": 17665, "ctr": 4.5, "watchHours": 331.4, "subsNet": 37 },
-      "buzzsprout": { "downloads": 526, "downloads30d": 475 },
-      "episodes": [
-        { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "published": "May 15", "views": 617, "ctr": 3.1, "avgView": 46.1, "subs": 2 },
-        { "title": "2.3 Chanting Every Day and Still Feeling Nothing (Manjari Devi Dasi)", "type": "Episode", "published": "May 12", "views": 582, "ctr": 6.7, "avgView": 20.1, "subs": 9 },
-        { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "published": "May 12", "views": 358, "ctr": 1.3, "avgView": 48.8, "subs": 0 },
-        { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "published": "May 13", "views": 315, "ctr": 4.2, "avgView": 44.5, "subs": 0 },
-        { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "published": "May 18", "views": 263, "ctr": null, "avgView": 75.4, "subs": null },
-        { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "published": "May 11", "views": 203, "ctr": null, "avgView": 56.6, "subs": null },
-        { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "published": "May 7", "views": 182, "ctr": null, "avgView": 71.9, "subs": null },
-        { "title": "A Teenager Called His Dad a Loser", "type": "Short", "published": "May 5", "views": 134, "ctr": null, "avgView": 61.0, "subs": null }
-      ],
-      "platforms": [
-        { "name": "Apple Podcasts", "pct": 75 },
-        { "name": "Spotify", "pct": 6 },
-        { "name": "Web Browser", "pct": 4 },
-        { "name": "Podbean", "pct": 2 },
-        { "name": "Overcast", "pct": 2 },
-        { "name": "Other", "pct": 11 }
-      ],
-      "comments": [
-        { "handle": "@anandadasi", "age": "7 days", "episode": "2.4", "text": "Jai! Mind-blowing episode. Very grateful for this and for seeing and hearing Anuradha.", "flag": false },
-        { "handle": "@mirellageorgieva3383", "age": "2 wks", "episode": "2.4", "text": "I would request another episode with this wonderful lady. Haribol! Great episode.", "flag": false },
-        { "handle": "@OpenRecords", "age": "2 wks", "episode": "2.4", "text": "Another wonderful episode! Loved the humanness you inject into what can be dense subject matter.", "flag": false },
-        { "handle": "@eponymoususer8923", "age": "3 wks", "episode": "I've Never Been Completely Satisfied", "text": "How are we supposed to understand what you're talking about? Are you elitist, disconnected from the common experience?", "flag": true, "flagnote": "Needs a measured reply" }
-      ],
-      "actions": [
-        { "priority": "high", "title": "Lift long-form output", "detail": "Only one full episode (2.3) published in May, yet it produced 111 of the month's 331 watch hours. Shorts drive views but little watch time. Aim for 2 long-form episodes/month to protect watch time." },
-        { "priority": "high", "title": "Address the accessibility critique", "detail": "A pointed comment called the content elitist/inaccessible. Consider a short 'start here' explainer on what the Bhagavatam is and why it's experiential — and reply to that comment with warmth." },
-        { "priority": "med", "title": "Grow Spotify share", "detail": "Apple Podcasts is 75% of downloads; Spotify only 6%. Add a Spotify follow link to episode descriptions and a verbal CTA to widen distribution." },
-        { "priority": "med", "title": "Book a follow-up with Anuradha Devi Dasi", "detail": "Multiple viewers asked for more episodes with her. Her episodes (2.4) draw the warmest engagement — schedule a return." },
-        { "priority": "med", "title": "Fix weak Shorts thumbnails/hooks", "detail": "Some Shorts had CTR of 1.3–3.1% despite high impressions. Test stronger opening frames and on-screen hooks on the lowest-CTR Shorts." },
-        { "priority": "low", "title": "Tighten subscribe conversion", "detail": "3,738 views converted ~37 subscribers (~1%). Add a clear subscribe CTA card at the end of long-form episodes." }
-      ]
-    }
-  ]
+  "trend": [
+    { "label": "Jul 2025", "views": 10292, "downloads": 234 },
+    { "label": "Aug 2025", "views": 1369, "downloads": 277 },
+    { "label": "Sep 2025", "views": 325, "downloads": 213 },
+    { "label": "Oct 2025", "views": 818, "downloads": 312 },
+    { "label": "Nov 2025", "views": 562, "downloads": 294 },
+    { "label": "Dec 2025", "views": 633, "downloads": 432 },
+    { "label": "Jan 2026", "views": 690, "downloads": 276 },
+    { "label": "Feb 2026", "views": 998, "downloads": 375 },
+    { "label": "Mar 2026", "views": 4077, "downloads": 673 },
+    { "label": "Apr 2026", "views": 5978, "downloads": 674 },
+    { "label": "May 2026", "views": 3738, "downloads": 526 },
+    { "label": "Jun 2026*", "views": 2647, "downloads": 441 }
+  ],
+  "month": {
+    "label": "May 2026",
+    "youtube": { "views": 3738, "impressions": 17665, "ctr": 4.5, "watchHours": 331.4, "subsNet": 37 },
+    "buzzsprout": { "downloads": 526 },
+    "audience": [
+      { "name": "YouTube (video)", "value": 3738 },
+      { "name": "Apple Podcasts", "value": 395 },
+      { "name": "Other podcast apps", "value": 99 },
+      { "name": "Spotify", "value": 32 }
+    ],
+    "format": [
+      { "name": "Short clips", "value": 2072 },
+      { "name": "Full episodes", "value": 1666 }
+    ],
+    "topVideos": [
+      { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "views": 617 },
+      { "title": "2.3 Chanting Every Day and Still Feeling Nothing", "type": "Episode", "views": 582 },
+      { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "views": 358 },
+      { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "views": 315 },
+      { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "views": 263 },
+      { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "views": 203 },
+      { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "views": 182 },
+      { "title": "A Teenager Called His Dad a Loser", "type": "Short", "views": 134 }
+    ],
+    "episodes": [
+      { "title": "The Catch-22 at the Heart of Chanting", "type": "Short", "published": "May 15", "views": 617, "avgView": 46.1 },
+      { "title": "2.3 Chanting Every Day and Still Feeling Nothing (Manjari Devi Dasi)", "type": "Episode", "published": "May 12", "views": 582, "avgView": 20.1 },
+      { "title": "The Bhagavatam Is Heavy. That's the Point.", "type": "Short", "published": "May 12", "views": 358, "avgView": 48.8 },
+      { "title": "The Bhagavatam Isn't Judging You.", "type": "Short", "published": "May 13", "views": 315, "avgView": 44.5 },
+      { "title": "I Wasn't Allowed to Read for a Month.", "type": "Short", "published": "May 18", "views": 263, "avgView": 75.4 },
+      { "title": "\"Better I Don't Chant Too Carefully\"", "type": "Short", "published": "May 11", "views": 203, "avgView": 56.6 },
+      { "title": "\"You Can Only Have One Cosmology.\"", "type": "Short", "published": "May 7", "views": 182, "avgView": 71.9 },
+      { "title": "A Teenager Called His Dad a Loser", "type": "Short", "published": "May 5", "views": 134, "avgView": 61.0 }
+    ],
+    "comments": [
+      { "handle": "@anandadasi", "age": "7 days", "episode": "2.4", "text": "Jai! Mind-blowing episode. Very grateful for this and for seeing and hearing Anuradha.", "flag": false },
+      { "handle": "@mirellageorgieva3383", "age": "2 wks", "episode": "2.4", "text": "I would request another episode with this wonderful lady. Haribol! Great episode.", "flag": false },
+      { "handle": "@OpenRecords", "age": "2 wks", "episode": "2.4", "text": "Another wonderful episode! Loved the humanness you inject into what can be dense subject matter.", "flag": false },
+      { "handle": "@eponymoususer8923", "age": "3 wks", "episode": "\"I've Never Been Completely Satisfied\"", "text": "How are we supposed to understand what you're talking about? Are you elitist, disconnected from the common experience?", "flag": true, "flagnote": "Worth a kind reply" }
+    ],
+    "actions": [
+      { "priority": "high", "title": "Put out more full episodes", "detail": "Only one full episode went out last month, but it gave you almost all of your watch time. Short clips bring lots of quick views but people don't stay long. Aim for two full episodes a month." },
+      { "priority": "high", "title": "Reply warmly to the 'too hard to understand' comment", "detail": "One viewer felt the show was over their head. A friendly reply — plus a simple 'start here' video explaining what the Bhagavatam is — would welcome newcomers in." },
+      { "priority": "med", "title": "Nudge people towards Spotify", "detail": "Nearly all podcast listeners use Apple Podcasts; hardly any use Spotify. Adding a 'listen on Spotify' link and a quick mention could open up a whole new group of listeners." },
+      { "priority": "med", "title": "Invite Anuradha Devi Dasi back", "detail": "Her episode got the warmest comments, and more than one person asked for her to return. An easy win for happy viewers." },
+      { "priority": "med", "title": "Improve the weakest clip covers", "detail": "A couple of short clips were shown to lots of people but few clicked. A clearer opening image and a stronger first line would help them get watched." },
+      { "priority": "low", "title": "Ask viewers to subscribe", "detail": "Lots of people watched but only a few subscribed. A simple 'subscribe to follow along' at the end of full episodes should lift that gently." }
+    ]
+  }
 }
 </script>
 
 <script>
 (function(){
   const D = JSON.parse(document.getElementById('dashboard-data').textContent);
-  const m = D.months[D.months.length-1];
-  const prev = D.months.length>1 ? D.months[D.months.length-2] : null;
+  const m = D.month;
   const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
   const fmt = n => n>=1000 ? (n/1000).toFixed(n>=10000?0:1)+'K' : (''+n);
 
@@ -194,91 +233,88 @@
   document.getElementById('period').textContent = m.label;
   document.getElementById('updated').textContent = 'updated '+D.lastUpdated;
   document.getElementById('foot-updated').textContent = 'last updated '+D.lastUpdated;
-
-  function delta(cur, key){
-    if(!prev) return '';
-    const p = prev.youtube[key]!==undefined?prev.youtube[key]:(prev.buzzsprout[key]);
-    if(p==null) return '';
-    const d = ((cur-p)/p*100);
-    const cls = d>0.5?'up':(d<-0.5?'down':'flat');
-    const arrow = d>0.5?'▲':(d<-0.5?'▼':'▬');
-    return '<div class="delta '+cls+'">'+arrow+' '+Math.abs(d).toFixed(0)+'% vs '+prev.label+'</div>';
-  }
+  document.getElementById('intro').textContent =
+    'A plain-English snapshot of how '+D.channel+' is doing. No jargon — just what happened last month, what the year looks like, and what to do next.';
 
   const kpis = [
-    {label:'Subscribers', val:D.current.subscribers.toLocaleString(), extra:'<div class="delta up">+'+m.youtube.subsNet+' this month</div>'},
-    {label:'YouTube views', val:fmt(m.youtube.views), extra:delta(m.youtube.views,'views')},
-    {label:'Watch hours', val:m.youtube.watchHours.toLocaleString(), extra:delta(m.youtube.watchHours,'watchHours')},
-    {label:'Downloads (Buzzsprout)', val:m.buzzsprout.downloads.toLocaleString(), extra:delta(m.buzzsprout.downloads,'downloads')},
-    {label:'Impressions CTR', val:m.youtube.ctr+'%', extra:''},
-    {label:'Impressions', val:fmt(m.youtube.impressions), extra:''}
+    {val:D.current.subscribers.toLocaleString(), label:'Followers', plain:'People subscribed to the YouTube channel', delta:'<div class="delta up">+'+m.youtube.subsNet+' last month</div>'},
+    {val:fmt(m.youtube.views), label:'Video views', plain:'Times a video was watched on YouTube last month'},
+    {val:Math.round(m.youtube.watchHours).toLocaleString(), label:'Hours watched', plain:'Total hours people spent watching last month'},
+    {val:m.buzzsprout.downloads.toLocaleString(), label:'Podcast downloads', plain:'Times an episode was downloaded as audio'},
+    {val:m.youtube.ctr+'%', label:'Click rate', plain:'Of people shown a video, how many clicked to watch'}
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k=>
-    '<div class="kpi"><div class="label">'+k.label+'</div><div class="val">'+k.val+'</div>'+(k.extra||'')+'</div>'
+    '<div class="kpi"><div class="val">'+k.val+'</div><div class="label">'+k.label+'</div>'+
+    '<div class="plain">'+k.plain+'</div>'+(k.delta||'')+'</div>'
   ).join('');
-
-  document.getElementById('annual-note').innerHTML =
-    'Trailing 12 months ('+D.annual.window+'): <strong>'+D.annual.views.toLocaleString()+'</strong> views · <strong>'+
-    D.annual.watchHours.toLocaleString()+'</strong> watch hours · <strong>+'+D.annual.subsNet+'</strong> subscribers · '+
-    D.annual.impressions.toLocaleString()+' impressions at '+D.annual.ctr+'% CTR.';
 
   Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
   Chart.defaults.color = css('--muted');
-  const ACC = css('--accent'), INK = css('--ink');
+  const ACC=css('--accent'), YT=css('--yt'), POD=css('--pod');
 
-  // Top content by views (horizontal bar)
-  const eps = m.episodes.slice().sort((a,b)=>b.views-a.views);
-  new Chart(document.getElementById('chTop'),{
-    type:'bar',
-    data:{ labels:eps.map(e=>e.title.length>34?e.title.slice(0,33)+'…':e.title),
-      datasets:[{ data:eps.map(e=>e.views),
-        backgroundColor:eps.map(e=>e.type==='Episode'?ACC:'#d8c9a8'),
-        borderRadius:5 }] },
-    options:{ indexAxis:'y', plugins:{legend:{display:false},
-      tooltip:{callbacks:{afterLabel:c=>'CTR '+(eps[c.dataIndex].ctr??'—')+'% · '+(eps[c.dataIndex].avgView)+'% viewed'}}},
-      scales:{x:{grid:{color:css('--line')}},y:{grid:{display:false},ticks:{font:{size:11}}}},
-      maintainAspectRatio:false }
-  });
-
-  // Platform doughnut
-  const pal = [ACC,'#3f7d54','#7b8aa0','#c9852a','#9c6bb0','#cfc6b5'];
-  new Chart(document.getElementById('chPlat'),{
-    type:'doughnut',
-    data:{ labels:m.platforms.map(p=>p.name),
-      datasets:[{ data:m.platforms.map(p=>p.pct), backgroundColor:pal, borderWidth:2, borderColor:css('--surface') }] },
-    options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
-      tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}, maintainAspectRatio:false }
-  });
-
-  // Reach trend (views + downloads across months)
+  // Year trend
   new Chart(document.getElementById('chTrend'),{
     type:'line',
-    data:{ labels:D.months.map(x=>x.label),
+    data:{ labels:D.trend.map(x=>x.label),
       datasets:[
-        { label:'YouTube views', data:D.months.map(x=>x.youtube.views), borderColor:ACC, backgroundColor:ACC, tension:0.3, pointRadius:4 },
-        { label:'Downloads', data:D.months.map(x=>x.buzzsprout.downloads), borderColor:'#3f7d54', backgroundColor:'#3f7d54', tension:0.3, pointRadius:4 }
+        { label:'YouTube views', data:D.trend.map(x=>x.views), borderColor:YT, backgroundColor:YT, tension:0.3, pointRadius:3, yAxisID:'y' },
+        { label:'Podcast downloads', data:D.trend.map(x=>x.downloads), borderColor:POD, backgroundColor:POD, tension:0.3, pointRadius:3, yAxisID:'y1' }
       ] },
-    options:{ plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:12}}}},
-      scales:{y:{beginAtZero:true,grid:{color:css('--line')}},x:{grid:{display:false}}},
+    options:{ plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:12.5}}}},
+      scales:{
+        y:{position:'left',beginAtZero:true,grid:{color:css('--line')},title:{display:true,text:'YouTube views',color:YT,font:{size:11}}},
+        y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'Downloads',color:POD,font:{size:11}}},
+        x:{grid:{display:false},ticks:{font:{size:11},maxRotation:40,minRotation:40}}},
       maintainAspectRatio:false }
   });
+  document.getElementById('trendTake').innerHTML =
+    '<b>The story:</b> a big launch spike last July, a quiet autumn and winter, then a strong comeback from February onward. YouTube views swing a lot; podcast downloads grow more steadily. (Jun 2026 is still a part-month.)';
 
-  // Engagement: avg % viewed for top items
-  new Chart(document.getElementById('chEng'),{
+  // Audience combined
+  const apal=[YT,'#7b8aa0','#cfc6b5',POD];
+  const audTotal=m.audience.reduce((a,x)=>a+x.value,0);
+  new Chart(document.getElementById('chAudience'),{
+    type:'doughnut',
+    data:{ labels:m.audience.map(x=>x.name),
+      datasets:[{ data:m.audience.map(x=>x.value), backgroundColor:apal, borderWidth:2, borderColor:css('--surface') }] },
+    options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
+      tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toLocaleString()+' ('+Math.round(c.raw/audTotal*100)+'%)'}}},
+      maintainAspectRatio:false }
+  });
+  const ytPct=Math.round(m.audience[0].value/audTotal*100);
+  document.getElementById('audTake').innerHTML =
+    '<b>The story:</b> about '+ytPct+'% of your audience is on YouTube. The podcast-app listeners are almost all on Apple Podcasts — Spotify is barely used yet.';
+
+  // Format split
+  new Chart(document.getElementById('chFormat'),{
+    type:'doughnut',
+    data:{ labels:m.format.map(x=>x.name),
+      datasets:[{ data:m.format.map(x=>x.value), backgroundColor:[ACC,POD], borderWidth:2, borderColor:css('--surface') }] },
+    options:{ cutout:'58%', plugins:{legend:{position:'right',labels:{boxWidth:12,font:{size:12}}},
+      tooltip:{callbacks:{label:c=>c.label+': '+c.raw.toLocaleString()+' views'}}},
+      maintainAspectRatio:false }
+  });
+  document.getElementById('fmtTake').innerHTML =
+    '<b>The story:</b> short clips pull in slightly more views — but the single full episode is where people actually spent their time (most of the month\'s watch hours). Clips attract; episodes hold.';
+
+  // Top videos
+  const eps=m.topVideos.slice().sort((a,b)=>b.views-a.views);
+  new Chart(document.getElementById('chTop'),{
     type:'bar',
-    data:{ labels:eps.slice(0,6).map(e=>e.title.length>22?e.title.slice(0,21)+'…':e.title),
-      datasets:[{ label:'Avg % viewed', data:eps.slice(0,6).map(e=>e.avgView),
-        backgroundColor:'#7b8aa0', borderRadius:5 }] },
-    options:{ plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,grid:{color:css('--line')},ticks:{callback:v=>v+'%'}},
-        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:40,minRotation:40}}},
+    data:{ labels:eps.map(e=>e.title.length>40?e.title.slice(0,39)+'…':e.title),
+      datasets:[{ data:eps.map(e=>e.views),
+        backgroundColor:eps.map(e=>e.type==='Episode'?POD:ACC), borderRadius:5 }] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>c.raw+' views',afterLabel:c=>eps[c.dataIndex].type}}},
+      scales:{x:{grid:{color:css('--line')},title:{display:true,text:'views',font:{size:11}}},
+        y:{grid:{display:false},ticks:{font:{size:11}}}},
       maintainAspectRatio:false }
   });
 
   // Actions
   document.getElementById('actions').innerHTML = m.actions.map(a=>{
-    const cls = a.priority==='high'?'high':(a.priority==='med'?'med':'low');
-    const tag = a.priority==='high'?'High':(a.priority==='med'?'Medium':'Low');
+    const cls=a.priority==='high'?'high':(a.priority==='med'?'med':'low');
+    const tag=a.priority==='high'?'Do first':(a.priority==='med'?'Soon':'When you can');
     return '<div class="action '+cls+'"><span class="tag">'+tag+'</span>'+
       '<div class="body"><strong>'+a.title+'</strong><span>'+a.detail+'</span></div></div>';
   }).join('');
@@ -290,12 +326,11 @@
   ).join('');
 
   // Episode table
-  const rows = m.episodes.map(e=>
+  const rows=m.episodes.map(e=>
     '<tr><td>'+e.title+' <span class="pill">'+e.type+'</span></td><td>'+e.published+'</td><td>'+
-    e.views.toLocaleString()+'</td><td>'+(e.ctr??'—')+(e.ctr!=null?'%':'')+'</td><td>'+e.avgView+'%</td><td>'+
-    (e.subs??'—')+'</td></tr>').join('');
+    e.views.toLocaleString()+'</td><td>'+e.avgView+'%</td></tr>').join('');
   document.getElementById('eptable').innerHTML =
-    '<thead><tr><th>Title</th><th>Published</th><th>Views</th><th>CTR</th><th>Avg viewed</th><th>Subs</th></tr></thead><tbody>'+rows+'</tbody>';
+    '<thead><tr><th>Title</th><th>Published</th><th>Views</th><th>How much watched</th></tr></thead><tbody>'+rows+'</tbody>';
 })();
 </script>
 </body>
